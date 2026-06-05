@@ -28,7 +28,7 @@ export class TesteController {
 
   public atualizar = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const teste = await this.service.atualizarTeste(id, req.body);
       res.status(200).json(teste);
     } catch (error: any) {
@@ -38,7 +38,7 @@ export class TesteController {
 
   public excluir = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await this.service.excluirTeste(id);
       res.status(204).send();
     } catch (error: any) {

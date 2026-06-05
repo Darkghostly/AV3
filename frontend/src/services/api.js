@@ -7,7 +7,10 @@ function getToken() {
 }
 
 async function request(method, path, body) {
-  const headers = { "Content-Type": "application/json" };
+  const headers = { 
+    "Content-Type": "application/json",
+    "X-Request-Start": Date.now().toString()
+  };
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
 

@@ -1,0 +1,6 @@
+{"timestamp":"2026-06-05T21:33:20.657Z","metodo":"GET","rota":"/api/etapas","status":304,"latenciaRedeMs":13,"processamentoServidorMs":135.963,"tempoRespostaTotalMs":148.963}
+{"timestamp":"2026-06-05T21:33:20.669Z","metodo":"GET","rota":"/api/aeronaves","status":304,"latenciaRedeMs":157,"processamentoServidorMs":3.672,"tempoRespostaTotalMs":160.672}
+{"timestamp":"2026-06-05T21:33:20.674Z","metodo":"GET","rota":"/api/funcionarios","status":304,"latenciaRedeMs":161,"processamentoServidorMs":3.761,"tempoRespostaTotalMs":164.761}
+{"timestamp":"2026-06-05T21:33:20.677Z","metodo":"GET","rota":"/api/etapas","status":304,"latenciaRedeMs":164,"processamentoServidorMs":1.803,"tempoRespostaTotalMs":165.803}
+{"timestamp":"2026-06-05T21:33:20.682Z","metodo":"GET","rota":"/api/funcionarios","status":304,"latenciaRedeMs":170,"processamentoServidorMs":1.726,"tempoRespostaTotalMs":171.726}
+{"timestamp":"2026-06-05T21:33:20.680Z","metodo":"GET","rota":"/api/aeronaves","status":304,"latenciaRedeMs":167,"processamentoServidorMs":2.019,"tempoRespostaTotalMs":169.019}

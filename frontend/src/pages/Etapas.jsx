@@ -15,6 +15,7 @@ export default function Etapas() {
   const { isEng } = useAuth()
   const [etapas, setEtapas] = useState([])
   const [aeronaves, setAeronaves] = useState([])
+  const [funcionarios, setFuncionarios] = useState([])
   const [modal, setModal]   = useState(false)
   const [editando, setEdit] = useState(null)
   const [form, setForm]     = useState(EMPTY)
@@ -23,9 +24,14 @@ export default function Etapas() {
 
   async function carregar() {
     try {
-      const [eData, aData] = await Promise.all([api.getEtapas(), api.getAeronaves()])
+      const [eData, aData, fData] = await Promise.all([
+        api.getEtapas(),
+        api.getAeronaves(),
+        api.getFuncionarios()
+      ])
       setEtapas(eData || [])
       setAeronaves(aData || [])
+      setFuncionarios(fData || [])
     } catch (e) { alert(e.message) }
   }
 
@@ -137,7 +143,15 @@ export default function Etapas() {
                 </select>
               </div>
               <div><label>Prazo</label><input type="date" value={form.prazo} onChange={e => setForm(f => ({ ...f, prazo: e.target.value }))} /></div>
-              <div><label>Responsável</label><input placeholder="Nome" value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
+                            <div>
+                <label>Responsável</label>
+                <select value={form.responsavel || ''} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))}>
+                  <option value="">— Selecionar —</option>
+                  {funcionarios.map(f => (
+                    <option key={f.id} value={f.nome}>{f.nome} ({f.permissao})</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label>Status</label>
                 <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>

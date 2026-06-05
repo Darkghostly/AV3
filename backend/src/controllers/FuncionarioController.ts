@@ -54,7 +54,7 @@ export class FuncionarioController {
 
   public handleAtualizar = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const funcionario = await this.service.atualizarFuncionario(id, req.body);
       res.status(200).json(funcionario);
     } catch (error: any) {
@@ -65,7 +65,7 @@ export class FuncionarioController {
 
   public handleExcluir = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await this.service.excluirFuncionario(id);
       res.status(204).send();
     } catch (error: any) {

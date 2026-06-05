@@ -28,7 +28,7 @@ export class EtapaController {
 
   public atualizar = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const etapa = await this.service.atualizarEtapa(id, req.body);
       res.status(200).json(etapa);
     } catch (error: any) {
@@ -38,7 +38,7 @@ export class EtapaController {
 
   public excluir = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await this.service.excluirEtapa(id);
       res.status(204).send();
     } catch (error: any) {
