@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,16 +6,70 @@ datasource db {
   provider = "sqlite"
 }
 
+// -------------------------------------------------
+// TABELAS DE SEGURANÇA E ACESSO
+// -------------------------------------------------
 model Funcionario {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
   nome      String
-  usuario   String @unique
+  usuario   String  @unique
+  email     String? // Opcional, pois na AV2 alguns não tinham
   senha     String
   permissao String
 }
 
+// -------------------------------------------------
+// TABELAS DE NEGÓCIO (PRODUÇÃO)
+// -------------------------------------------------
 model Aeronave {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
+  codigo     String  @unique
   modelo     String
   fabricante String
+  tipo       String  @default("COMERCIAL")
+  capacidade String? // Usando String para evitar quebra de tipagem do Frontend
+  alcance    String?
+  status     String  @default("PENDENTE")
+
+  // Relacionamentos: Uma aeronave "tem muitas" peças, etapas e testes
+  pecas  Peca[]
+  etapas Etapa[]
+  testes Teste[]
+}
+
+model Peca {
+  id         String  @id @default(uuid())
+  codigo     String  @unique
+  nome       String
+  tipo       String  @default("NACIONAL")
+  fornecedor String?
+  status     String  @default("EM_PRODUCAO")
+
+  // Relacionamento com a Aeronave (Pode ser nulo se a peça ainda não foi alocada)
+  aeronaveId String?
+  aeronave   Aeronave? @relation(fields: [aeronaveId], references: [id], onDelete: SetNull)
+}
+
+model Etapa {
+  id          String  @id @default(uuid())
+  nome        String
+  prazo       String?
+  responsavel String?
+  status      String  @default("PENDENTE")
+
+  // Toda etapa pertence obrigatoriamente a uma Aeronave
+  aeronaveId String
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+}
+
+model Teste {
+  id          String  @id @default(uuid())
+  codigo      String  @unique
+  tipo        String
+  data        String?
+  responsavel String?
+  resultado   String  @default("APROVADO")
+
+  aeronaveId String
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
 }

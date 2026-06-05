@@ -1,69 +1,62 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiFetch } from '../services/api';
+import { createContext, useContext, useState, useEffect } from 'react'
+import { api } from '../services/api'
 
-const AuthContext = createContext(null);
+const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const decodificarToken = (token) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (e) {
-      return null;
-    }
-  };
-
+  // Recupera sessão do localStorage ao recarregar a página (com postura defensiva)
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const dadosUsuario = decodificarToken(token);
-      if (dadosUsuario) {
-        setUser(dadosUsuario);
-      }
-    }
-  }, []);
-
-  const login = async (usuario, senha) => {
     try {
-      const data = await apiFetch('/login', {
-        method: 'POST',
-        body: JSON.stringify({ usuario, senha })
-      });
-
-      localStorage.setItem('token', data.token);
-      const dadosUsuario = decodificarToken(data.token);
-      setUser(dadosUsuario);
-      
-      return { sucesso: true };
-    } catch (error) {
-      return { sucesso: false, erro: error.message };
+      const saved = localStorage.getItem('aerocode_user')
+      if (saved && saved !== 'undefined') {
+        setUser(JSON.parse(saved))
+      }
+    } catch (e) {
+      // Se o cache estiver corrompido, limpa tudo para não dar tela branca
+      localStorage.removeItem('aerocode_user')
+      localStorage.removeItem('aerocode_token')
     }
-  };
+    setLoading(false)
+  }, [])
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
+  async function login(matricula, senha) {
+    try {
+      const data = await api.login(matricula, senha)   
+      localStorage.setItem('aerocode_token', data.token)
+      
+      const base64Url = data.token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')))
+      
+      localStorage.setItem('aerocode_user',  JSON.stringify(payload))
+      setUser(payload)
+      
+      return { sucesso: true }
+    } catch (error) {
+      // O escudo de segurança: Se o servidor der erro 500 ou 401, a tela para de carregar e mostra o erro!
+      return { sucesso: false, erro: error.message }
+    }
+  }
 
-  const permissao = user?.permissao;
-  
-  const isAdmin = permissao === 'ADMINISTRADOR';
-  const isEng   = permissao === 'ENGENHEIRO' || isAdmin;
-  const isOp    = permissao === 'OPERADOR' || isEng;
+  function logout() {
+    localStorage.removeItem('aerocode_token')
+    localStorage.removeItem('aerocode_user')
+    setUser(null)
+  }
+
+  const isAdmin = user?.permissao === 'ADMINISTRADOR'
+  const isEng   = user?.permissao === 'ENGENHEIRO' || isAdmin
+
+  if (loading) return null   // evita flash de tela
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isEng, isOp }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, isEng }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
-export function useAuth() { 
-    return useContext(AuthContext); 
-}
+export function useAuth() { return useContext(AuthContext) }

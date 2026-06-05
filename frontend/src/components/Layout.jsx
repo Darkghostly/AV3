@@ -83,10 +83,10 @@ export default function Layout() {
 
         <div className="sidebar-footer">
           <div className="user-info">
-            <div className="user-avatar">{user.nome[0]}</div>
+            <div className="user-avatar">{(user?.nome || user?.usuario || 'U')[0]}</div>
             <div className="user-meta">
-              <span className="user-name">{user.nome}</span>
-              <span className="user-level">{user.nivel}</span>
+              <span className="user-name">{user?.nome || user?.usuario || 'Usuário'}</span>
+              <span className="user-level">{user?.permissao || user?.nivel || 'OPERADOR'}</span>
             </div>
           </div>
           <button className="btn-logout" onClick={handleLogout} title="Sair">

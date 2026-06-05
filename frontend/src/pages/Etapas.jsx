@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { INITIAL_ETAPAS, INITIAL_AERONAVES } from '../data/store'
+import { api } from '../services/api'
 import './Etapas.css'
 
 const COLS = [
@@ -13,41 +13,55 @@ const EMPTY = { nome: '', aeronaveId: '', prazo: '', responsavel: '', status: 'P
 
 export default function Etapas() {
   const { isEng } = useAuth()
-  const [etapas, setEtapas] = useState(INITIAL_ETAPAS)
+  const [etapas, setEtapas] = useState([])
+  const [aeronaves, setAeronaves] = useState([])
   const [modal, setModal]   = useState(false)
   const [editando, setEdit] = useState(null)
   const [form, setForm]     = useState(EMPTY)
 
+  useEffect(() => { carregar() }, [])
+
+  async function carregar() {
+    try {
+      const [eData, aData] = await Promise.all([api.getEtapas(), api.getAeronaves()])
+      setEtapas(eData || [])
+      setAeronaves(aData || [])
+    } catch (e) { alert(e.message) }
+  }
+
   function abrirNovo()    { setEdit(null); setForm(EMPTY); setModal(true) }
   function abrirEditar(e) { setEdit(e.id); setForm({ ...e }); setModal(true) }
 
-  function salvar() {
+  async function salvar() {
     if (!form.nome || !form.aeronaveId) return
-    if (editando) {
-      setEtapas(l => l.map(e => e.id === editando ? { ...form, id: editando, aeronaveId: Number(form.aeronaveId) } : e))
-    } else {
-      setEtapas(l => [...l, { ...form, id: Date.now(), aeronaveId: Number(form.aeronaveId) }])
-    }
-    setModal(false)
+    try {
+      if (editando) {
+        await api.updateEtapa(editando, form)
+      } else {
+        await api.createEtapa(form)
+      }
+      await carregar()
+      setModal(false)
+    } catch (e) { alert(e.message) }
   }
 
-  function avancar(etapa) {
+  async function avancar(etapa) {
     const ordem = ['PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA']
     const idx = ordem.indexOf(etapa.status)
     if (idx < 2) {
-      // verifica dependência: todas as etapas da mesma aeronave anteriores à atual devem estar concluídas
-      const anteriores = etapas.filter(e => e.aeronaveId === etapa.aeronaveId && e.id < etapa.id)
-      const bloqueado  = anteriores.some(e => e.status !== 'CONCLUIDA')
-      if (bloqueado && etapa.status === 'PENDENTE') {
-        alert('Etapa bloqueada: a etapa anterior ainda não foi concluída.')
-        return
-      }
-      setEtapas(l => l.map(e => e.id === etapa.id ? { ...e, status: ordem[idx + 1] } : e))
+      try {
+        await api.updateEtapa(etapa.id, { ...etapa, status: ordem[idx + 1] })
+        await carregar()
+      } catch (e) { alert(e.message) }
     }
   }
 
-  function excluir(id) {
-    if (window.confirm('Excluir etapa?')) setEtapas(l => l.filter(e => e.id !== id))
+  async function excluir(id) {
+    if (!window.confirm('Excluir etapa?')) return
+    try {
+      await api.deleteEtapa(id)
+      setEtapas(l => l.filter(e => e.id !== id))
+    } catch (e) { alert(e.message) }
   }
 
   return (
@@ -55,7 +69,7 @@ export default function Etapas() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Etapas de Produção</h1>
-          <p className="page-sub">Kanban — {etapas.length} etapas no total</p>
+          <p className="page-sub">Kanban — {etapas.length} etapas no banco</p>
         </div>
         {isEng && <button className="btn btn-primary" onClick={abrirNovo}>+ Nova Etapa</button>}
       </div>
@@ -71,7 +85,7 @@ export default function Etapas() {
               </div>
               <div className="kanban-cards">
                 {cards.map(e => {
-                  const aero = INITIAL_AERONAVES.find(a => a.id === e.aeronaveId)
+                  const aero = aeronaves.find(a => a.id === e.aeronaveId)
                   return (
                     <div key={e.id} className="kanban-card">
                       <div className={`kanban-card-bar bar-${col.cls}`} />
@@ -99,9 +113,7 @@ export default function Etapas() {
                     </div>
                   )
                 })}
-                {cards.length === 0 && (
-                  <div className="kanban-empty">Nenhuma etapa</div>
-                )}
+                {cards.length === 0 && <div className="kanban-empty">Nenhuma etapa</div>}
               </div>
             </div>
           )
@@ -121,11 +133,11 @@ export default function Etapas() {
                 <label>Aeronave *</label>
                 <select value={form.aeronaveId} onChange={e => setForm(f => ({ ...f, aeronaveId: e.target.value }))}>
                   <option value="">— Selecionar —</option>
-                  {INITIAL_AERONAVES.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
+                  {aeronaves.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
                 </select>
               </div>
               <div><label>Prazo</label><input type="date" value={form.prazo} onChange={e => setForm(f => ({ ...f, prazo: e.target.value }))} /></div>
-              <div><label>Responsável</label><input placeholder="Nome do engenheiro" value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
+              <div><label>Responsável</label><input placeholder="Nome" value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></div>
               <div>
                 <label>Status</label>
                 <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>

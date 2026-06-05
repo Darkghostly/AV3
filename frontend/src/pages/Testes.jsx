@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { INITIAL_TESTES, INITIAL_AERONAVES } from '../data/store'
+import { api } from '../services/api'
 
 const RESULTADO_MAP = {
   APROVADO:  { label: 'Aprovado',  cls: 'green' },
@@ -11,32 +11,52 @@ const EMPTY = { codigo: '', tipo: 'ELETRICO', aeronaveId: '', data: '', resultad
 
 export default function Testes() {
   const { isEng } = useAuth()
-  const [lista, setLista]   = useState(INITIAL_TESTES)
+  const [lista, setLista]   = useState([])
+  const [aeronaves, setAeronaves] = useState([])
   const [busca, setBusca]   = useState('')
   const [filtro, setFiltro] = useState('TODOS')
   const [modal, setModal]   = useState(false)
   const [editando, setEdit] = useState(null)
   const [form, setForm]     = useState(EMPTY)
 
+  useEffect(() => { carregar() }, [])
+
+  async function carregar() {
+    try {
+      const [tData, aData] = await Promise.all([api.getTestes(), api.getAeronaves()])
+      setLista(tData || [])
+      setAeronaves(aData || [])
+    } catch(e) { alert(e.message) }
+  }
+
   const filtrado = lista.filter(t => {
-    const bk = t.codigo.toLowerCase().includes(busca.toLowerCase()) || t.tipo.includes(busca.toUpperCase())
+    const bk = (t.codigo || '').toLowerCase().includes(busca.toLowerCase()) || (t.tipo || '').includes(busca.toUpperCase())
     const fk = filtro === 'TODOS' || t.tipo === filtro
     return bk && fk
   })
 
   function abrirNovo()    { setEdit(null); setForm(EMPTY); setModal(true) }
   function abrirEditar(t) { setEdit(t.id); setForm({ ...t }); setModal(true) }
-  function salvar() {
+
+  async function salvar() {
     if (!form.codigo || !form.aeronaveId) return
-    if (editando) {
-      setLista(l => l.map(t => t.id === editando ? { ...form, id: editando, aeronaveId: Number(form.aeronaveId) } : t))
-    } else {
-      setLista(l => [...l, { ...form, id: Date.now(), aeronaveId: Number(form.aeronaveId) }])
-    }
-    setModal(false)
+    try {
+      if (editando) {
+        await api.updateTeste(editando, form)
+      } else {
+        await api.createTeste(form)
+      }
+      await carregar()
+      setModal(false)
+    } catch(e) { alert(e.message) }
   }
-  function excluir(id) {
-    if (window.confirm('Excluir teste?')) setLista(l => l.filter(t => t.id !== id))
+
+  async function excluir(id) {
+    if (!window.confirm('Excluir teste?')) return
+    try {
+      await api.deleteTeste(id)
+      setLista(l => l.filter(t => t.id !== id))
+    } catch(e) { alert(e.message) }
   }
 
   return (
@@ -52,9 +72,7 @@ export default function Testes() {
       <div className="search-bar">
         <input placeholder="Buscar por código..." value={busca} onChange={e => setBusca(e.target.value)} />
         {['TODOS', ...TIPOS].map(f => (
-          <button key={f} className={`btn ${filtro === f ? 'btn-primary' : 'btn-ghost'} btn-sm`} onClick={() => setFiltro(f)}>
-            {f}
-          </button>
+          <button key={f} className={`btn ${filtro === f ? 'btn-primary' : 'btn-ghost'} btn-sm`} onClick={() => setFiltro(f)}>{f}</button>
         ))}
       </div>
 
@@ -66,8 +84,8 @@ export default function Testes() {
             </thead>
             <tbody>
               {filtrado.map(t => {
-                const aero = INITIAL_AERONAVES.find(a => a.id === t.aeronaveId)
-                const res  = RESULTADO_MAP[t.resultado]
+                const aero = aeronaves.find(a => a.id === t.aeronaveId)
+                const res  = RESULTADO_MAP[t.resultado] || RESULTADO_MAP['APROVADO']
                 return (
                   <tr key={t.id}>
                     <td><code style={{ fontFamily: 'var(--mono)', color: 'var(--accent)', fontSize: 12 }}>{t.codigo}</code></td>
@@ -85,9 +103,6 @@ export default function Testes() {
                   </tr>
                 )
               })}
-              {filtrado.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text3)', padding: 32 }}>Nenhum teste encontrado</td></tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -112,7 +127,7 @@ export default function Testes() {
                 <label>Aeronave *</label>
                 <select value={form.aeronaveId} onChange={e => setForm(f => ({ ...f, aeronaveId: e.target.value }))}>
                   <option value="">— Selecionar —</option>
-                  {INITIAL_AERONAVES.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
+                  {aeronaves.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
                 </select>
               </div>
               <div><label>Data</label><input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} /></div>

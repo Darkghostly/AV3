@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { INITIAL_PECAS, INITIAL_AERONAVES } from '../data/store'
+import { api } from '../services/api'
 
 const STATUS_MAP = {
   EM_PRODUCAO:   { label: 'Em Produção',   cls: 'orange' },
@@ -12,33 +12,60 @@ const EMPTY = { codigo: '', nome: '', tipo: 'NACIONAL', fornecedor: '', aeronave
 
 export default function Pecas() {
   const { isEng } = useAuth()
-  const [lista, setLista]     = useState(INITIAL_PECAS)
+  const [lista, setLista]     = useState([])
+  const [aeronaves, setAeronaves] = useState([])
   const [busca, setBusca]     = useState('')
   const [modal, setModal]     = useState(false)
   const [editando, setEdit]   = useState(null)
   const [form, setForm]       = useState(EMPTY)
 
+  useEffect(() => {
+    carregar()
+  }, [])
+
+  async function carregar() {
+    try {
+      const [pData, aData] = await Promise.all([api.getPecas(), api.getAeronaves()])
+      setLista(pData || [])
+      setAeronaves(aData || [])
+    } catch (e) { alert(e.message) }
+  }
+
   const filtrada = lista.filter(p =>
-    p.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    p.codigo.toLowerCase().includes(busca.toLowerCase())
+    (p.nome || '').toLowerCase().includes(busca.toLowerCase()) ||
+    (p.codigo || '').toLowerCase().includes(busca.toLowerCase())
   )
 
   function abrirNovo()  { setEdit(null); setForm(EMPTY); setModal(true) }
   function abrirEditar(p) { setEdit(p.id); setForm({ ...p }); setModal(true) }
-  function salvar() {
+
+  async function salvar() {
     if (!form.codigo || !form.nome) return
-    if (editando) {
-      setLista(l => l.map(p => p.id === editando ? { ...form, id: editando } : p))
-    } else {
-      setLista(l => [...l, { ...form, id: Date.now(), aeronaveId: Number(form.aeronaveId) }])
-    }
-    setModal(false)
+    try {
+      if (editando) {
+        await api.updatePeca(editando, form)
+      } else {
+        await api.createPeca(form)
+      }
+      await carregar()
+      setModal(false)
+    } catch (e) { alert(e.message) }
   }
-  function excluir(id) {
-    if (window.confirm('Excluir peça?')) setLista(l => l.filter(p => p.id !== id))
+
+  async function excluir(id) {
+    if (!window.confirm('Excluir peça?')) return
+    try {
+      await api.deletePeca(id)
+      setLista(l => l.filter(p => p.id !== id))
+    } catch (e) { alert(e.message) }
   }
-  function atualizarStatus(id, status) {
-    setLista(l => l.map(p => p.id === id ? { ...p, status } : p))
+
+  async function atualizarStatus(id, status) {
+    try {
+      const pecaAtual = lista.find(p => p.id === id)
+      await api.updatePeca(id, { ...pecaAtual, status })
+      setLista(l => l.map(p => p.id === id ? { ...p, status } : p))
+    } catch (e) { alert(e.message) }
   }
 
   return (
@@ -46,7 +73,7 @@ export default function Pecas() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Peças</h1>
-          <p className="page-sub">{lista.length} peças registradas</p>
+          <p className="page-sub">{lista.length} peças registradas no servidor</p>
         </div>
         {isEng && <button className="btn btn-primary" onClick={abrirNovo}>+ Nova Peça</button>}
       </div>
@@ -63,8 +90,7 @@ export default function Pecas() {
             </thead>
             <tbody>
               {filtrada.map(p => {
-                const aero = INITIAL_AERONAVES.find(a => a.id === p.aeronaveId)
-                const s = STATUS_MAP[p.status]
+                const aero = aeronaves.find(a => a.id === p.aeronaveId)
                 return (
                   <tr key={p.id}>
                     <td><code style={{ fontFamily: 'var(--mono)', color: 'var(--accent)', fontSize: 12 }}>{p.codigo}</code></td>
@@ -73,11 +99,7 @@ export default function Pecas() {
                     <td style={{ color: 'var(--text2)' }}>{p.fornecedor}</td>
                     <td><code style={{ fontFamily: 'var(--mono)', color: 'var(--text2)', fontSize: 12 }}>{aero?.codigo || '—'}</code></td>
                     <td>
-                      <select
-                        value={p.status}
-                        onChange={e => atualizarStatus(p.id, e.target.value)}
-                        style={{ width: 'auto', padding: '3px 8px', fontSize: 12 }}
-                      >
+                      <select value={p.status} onChange={e => atualizarStatus(p.id, e.target.value)} style={{ width: 'auto', padding: '3px 8px', fontSize: 12 }}>
                         {Object.entries(STATUS_MAP).map(([k, v]) => (
                           <option key={k} value={k}>{v.label}</option>
                         ))}
@@ -110,7 +132,7 @@ export default function Pecas() {
                 <label>Aeronave</label>
                 <select value={form.aeronaveId} onChange={e => setForm(f => ({ ...f, aeronaveId: e.target.value }))}>
                   <option value="">— Selecionar —</option>
-                  {INITIAL_AERONAVES.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
+                  {aeronaves.map(a => <option key={a.id} value={a.id}>{a.codigo} — {a.modelo}</option>)}
                 </select>
               </div>
               <div>
