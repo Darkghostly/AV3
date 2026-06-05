@@ -1,0 +1,127 @@
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.login-brand {
+  width: 380px;
+  min-width: 380px;
+  background: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: linear-gradient(145deg, #1e3a5f, #1d4ed8 60%, #3b82f6);
+}
+.login-brand-icon { font-size: 52px; color: #fff; margin-bottom: 16px; }
+.login-brand-name {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.login-brand-sub {
+  color: #93c5fd;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+  max-width: 240px;
+}
+.login-brand-divider {
+  width: 48px; height: 2px;
+  background: #93c5fd44;
+  margin: 24px 0;
+  border-radius: 1px;
+}
+.login-brand-note {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #93c5fd99;
+  letter-spacing: 1px;
+}
+
+.login-form-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.login-hint {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 24px;
+}
+.login-hint code {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.login-form { display: flex; flex-direction: column; gap: 16px; }
+
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+
+.login-erro {
+  background: var(--red-bg);
+  border: 1px solid #ef444433;
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.login-btn { width: 100%; justify-content: center; padding: 11px; font-size: 14px; }
+.login-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.login-footer {
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--text3);
+  text-align: center;
+}
+
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrap input {
+  padding-right: 36px;
+}
+.btn-toggle-pass {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color .15s;
+}
+.btn-toggle-pass:hover {
+  color: var(--text);
+}
