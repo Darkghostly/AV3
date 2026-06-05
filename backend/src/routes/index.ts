@@ -23,8 +23,6 @@ const aeronaveController = new AeronaveController(aeronaveService);
 
 routes.post('/funcionarios/registar', funcionarioController.handleRegisto);
 routes.post('/login', funcionarioController.handleLogin);
-// Rotas Privadas (Protegidas pelo Middleware JWT)
-// ---------------------------------------------------------
 routes.get('/aeronaves', authMiddleware, aeronaveController.listar);
 routes.post('/aeronaves', authMiddleware, aeronaveController.criar);
 

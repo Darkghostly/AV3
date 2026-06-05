@@ -27,6 +27,10 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+app.get('/', (req, res) => {
+  res.json({ mensagem: 'API do Backend AV3 está ativa e rodando!' });
+});
+
 app.use('/api', apiRoutes);
 
 const PORT = process.env.PORT || 3000;
