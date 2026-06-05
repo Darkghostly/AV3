@@ -1,6 +1,6 @@
 # ✈️ Aerocode — Sistema de Gestão da Produção e Telemetria Aeronáutica
 
-O **Aerocode** é uma aplicação web Fullstack desenvolvida para a gestão crítica, controle de qualidade e telemetria de fabricação de aeronaves. Projetado sob os exigentes padrões do setor aeronáutico — alinhando-se aos requisitos operacionais de gigantes como Boeing, Airbus e Embraer —, o sistema garante rastreabilidade total de peças, etapas de montagem, testes de integridade e gestão de funcionários responsáveis.
+O **Aerocode** é uma aplicação web Fullstack desenvolvida para a gestão crítica, controle de qualidade e telemetria de fabricação de aeronaves. Projetado sob os exigentes padrões do setor aeronáutico — alinhando-se aos requisitos operacionais de gigantes como Boeing, Airbus e Embraer, o sistema garante rastreabilidade total de peças, etapas de montagem, testes de integridade e gestão de funcionários responsáveis.
 
 ---
 
