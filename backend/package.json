@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "dev:test": "cross-env NODE_ENV=test tsx watch src/server.ts",
+    "test:load-1": "autocannon -c 1 -d 10 -t 5 -s ./carga.js http://localhost:3000/",
+    "test:load-5": "autocannon -c 5 -d 10 -t 5 -s ./carga.js http://localhost:3000/",
+    "test:load-10": "autocannon -c 10 -d 10 -t 5 -s ./carga.js http://localhost:3000/"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +34,8 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.1",
+    "autocannon": "^8.0.0",
+    "cross-env": "^10.1.0",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

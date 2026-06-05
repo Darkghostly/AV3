@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 app.use(metricsMiddleware);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  max: process.env.NODE_ENV === 'test' ? 100000 : 100, 
   message: "Muitas requisições detetadas. Firewall ativado."
 });
 app.use(limiter);
