@@ -13,8 +13,7 @@ export class AeronaveController {
     res: Response
   ): Promise<void> => {
     try {
-      const { modelo, fabricante } = req.body;
-      const aeronave = await this.service.criarAeronave(modelo, fabricante);
+      const aeronave = await this.service.criarAeronave(req.body);
       res.status(201).json(aeronave);
     } catch (error: any) {
       res.status(400).json({ erro: error.message });
@@ -30,6 +29,32 @@ export class AeronaveController {
       res.status(200).json(aeronaves);
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar aeronaves.' });
+    }
+  };
+
+  public atualizar = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const aeronave = await this.service.atualizarAeronave(id, req.body);
+      res.status(200).json(aeronave);
+    } catch (error: any) {
+      res.status(400).json({ erro: error.message });
+    }
+  };
+
+  public excluir = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      await this.service.excluirAeronave(id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(400).json({ erro: error.message });
     }
   };
 }

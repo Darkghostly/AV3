@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -26,6 +27,10 @@ const limiter = rateLimit({
   message: "Muitas requisições detetadas. Firewall ativado."
 });
 app.use(limiter);
+
+app.get('/', (req, res) => {
+  res.json({ mensagem: 'API do Backend AV3 está ativa e rodando!' });
+});
 
 app.use('/api', apiRoutes);
 
