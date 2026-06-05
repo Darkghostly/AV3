@@ -96,12 +96,3 @@ O sistema conta com um **Middleware de Telemetria** integrado em [metrics.ts](fi
 Todos os registros são salvos assincronamente em [logs_qualidade.json](file:///c:/Users/tavob/Documents/AV3/backend/logs_qualidade.json) para auditorias de garantia de qualidade (QA) e posterior renderização de gráficos de desempenho.
 
 ---
-
-## 🛡️ Confiabilidade em Sistemas Críticos
-
-> *"Na aviação, a tolerância a falhas não é um objetivo de design, é uma obrigação de sobrevivência. A integridade dos dados de fabricação reflete diretamente na segurança de voo."*
-
----
-
-### 🎓 Créditos
-Atividade desenvolvida para a **AV3** — Disciplina ministrada pelo **Eng. Dr. Gerson Penha**.
