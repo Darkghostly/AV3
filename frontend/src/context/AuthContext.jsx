@@ -1,35 +1,69 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../services/api';
 
-const AuthContext = createContext(null)
-
-// Usuários mock — simulam o banco do CLI
-const USERS = [
-  { id: 1, matricula: 'admin',    senha: '1234', nome: 'Carlos Souza',   nivel: 'ADMINISTRADOR' },
-  { id: 2, matricula: 'eng01',    senha: '1234', nome: 'Ana Lima',       nivel: 'ENGENHEIRO' },
-  { id: 3, matricula: 'op01',     senha: '1234', nome: 'Pedro Moraes',   nivel: 'OPERADOR' },
-]
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(null);
 
-  function login(matricula, senha) {
-    const found = USERS.find(u => u.matricula === matricula && u.senha === senha)
-    if (found) { setUser(found); return true }
-    return false
-  }
+  const decodificarToken = (token) => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  };
 
-  function logout() { setUser(null) }
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const dadosUsuario = decodificarToken(token);
+      if (dadosUsuario) {
+        setUser(dadosUsuario);
+      }
+    }
+  }, []);
 
-  const isAdmin  = user?.nivel === 'ADMINISTRADOR'
-  const isEng    = user?.nivel === 'ENGENHEIRO' || isAdmin
-  const isOp     = true // todos têm nível operador mínimo
+  const login = async (usuario, senha) => {
+    try {
+      const data = await apiFetch('/login', {
+        method: 'POST',
+        body: JSON.stringify({ usuario, senha })
+      });
+
+      localStorage.setItem('token', data.token);
+      const dadosUsuario = decodificarToken(data.token);
+      setUser(dadosUsuario);
+      
+      return { sucesso: true };
+    } catch (error) {
+      return { sucesso: false, erro: error.message };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  const permissao = user?.permissao;
+  
+  const isAdmin = permissao === 'ADMINISTRADOR';
+  const isEng   = permissao === 'ENGENHEIRO' || isAdmin;
+  const isOp    = permissao === 'OPERADOR' || isEng;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isEng }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, isEng, isOp }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export function useAuth() { return useContext(AuthContext) }
+export function useAuth() { 
+    return useContext(AuthContext); 
+}

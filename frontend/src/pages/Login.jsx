@@ -12,16 +12,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  function handleSubmit(e) {
+  // Transformamos a função em async para esperar a resposta do Servidor
+  async function handleSubmit(e) {
     e.preventDefault()
     setErro('')
     setLoading(true)
-    setTimeout(() => {
-      const ok = login(matricula, senha)
-      if (ok) navigate('/')
-      else setErro('Usuário ou senha inválidos. Tente novamente.')
+
+    // Faz a requisição real para o nosso Backend Node.js
+    const resultado = await login(matricula, senha)
+
+    if (resultado.sucesso) {
+      navigate('/') // Entra no sistema
+    } else {
+      // Mostra o erro exato que o servidor cuspiu (ex: bloqueio por Rate Limit ou Senha errada)
+      setErro(resultado.erro || 'Usuário ou senha inválidos. Tente novamente.')
       setLoading(false)
-    }, 400)
+    }
   }
 
   return (
@@ -31,13 +37,13 @@ export default function Login() {
         <h1 className="login-brand-name">AEROCODE</h1>
         <p className="login-brand-sub">Sistema de Gestão da Produção de Aeronaves</p>
         <div className="login-brand-divider" />
-        <p className="login-brand-note">v2.0 — Interface GUI / SPA</p>
+        <p className="login-brand-note">v3.0 — API Segura (JWT & SQLite)</p>
       </div>
 
       <div className="login-form-area">
         <div className="login-card">
           <h2 className="login-title">Acesso ao Sistema</h2>
-          <p className="login-hint">Use: <code>admin / 1234</code> &nbsp;|&nbsp; <code>eng01 / 1234</code> &nbsp;|&nbsp; <code>op01 / 1234</code></p>
+          {/* A linha de dicas de senha foi exterminada para garantir a segurança */}
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-field">
@@ -49,6 +55,7 @@ export default function Login() {
                 onChange={e => setMatricula(e.target.value)}
                 autoFocus
                 required
+                autoComplete="off" // Postura defensiva para não salvar o cache do usuário
               />
             </div>
             <div className="form-field">
@@ -75,7 +82,7 @@ export default function Login() {
             {erro && <div className="login-erro">{erro}</div>}
 
             <button className="btn btn-primary login-btn" type="submit" disabled={loading}>
-              {loading ? 'Verificando...' : 'Entrar'}
+              {loading ? 'Autenticando no Cofre...' : 'Entrar'}
             </button>
           </form>
         </div>
