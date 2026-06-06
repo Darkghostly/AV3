@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { FuncionarioService } from '../services/FuncionarioService';
 import { FuncionarioController } from '../controllers/FuncionarioController';
 import { AeronaveService } from '../services/AeronaveService';
@@ -16,10 +15,7 @@ import { authMiddleware } from '../middlewares/authMiddleware';
 
 const routes = Router();
 
-const adapter = new PrismaBetterSqlite3({
-  url: 'file:./dev.db'
-});
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 const funcionarioService = new FuncionarioService(prisma);
 const funcionarioController = new FuncionarioController(funcionarioService);
